@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DURGUZ - Sistema POS</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <span class="material-symbols-rounded logo-icon">local_fire_department</span>
+                <h1>DURGUZ <span class="badge">POS</span></h1>
+            </div>
+            <div class="nav-links">
+                <button class="nav-btn active" data-view="pos">
+                    <span class="material-symbols-rounded">point_of_sale</span>
+                    Mesero
+                </button>
+                <button class="nav-btn" data-view="menu-admin">
+                    <span class="material-symbols-rounded">restaurant_menu</span>
+                    Menú
+                </button>
+                <button class="nav-btn" data-view="kitchen">
+                    <span class="material-symbols-rounded">soup_kitchen</span>
+                    Cocina
+                    <span id="kitchen-badge" class="notification-badge hidden">0</span>
+                </button>
+                <button class="nav-btn" data-view="stats">
+                    <span class="material-symbols-rounded">bar_chart</span>
+                    Estadísticas
+                </button>
+                <button class="nav-btn" data-view="settings">
+                    <span class="material-symbols-rounded">settings</span>
+                    Ajustes
+                </button>
+            </div>
+            <div class="nav-actions">
+                <span id="clock" class="clock"></span>
+            </div>
+        </nav>
+
+        <!-- Main Content Container -->
+        <main id="main-content">
+            
+            <!-- ====== POS VIEW (Mesero) ====== -->
+            <section id="view-pos" class="view-section active">
+                <!-- 1. Left: Active Orders -->
+                <div class="panel orders-panel">
+                    <div class="panel-header">
+                        <h2>Pedidos Activos</h2>
+                        <button id="btn-new-order" class="btn-primary">
+                            <span class="material-symbols-rounded">add</span>
+                            Nuevo
+                        </button>
+                    </div>
+                    <div class="orders-list" id="active-orders-list">
+                        <!-- Orders will be generated here -->
+                    </div>
+                </div>
+
+                <!-- 2. Center: Menu Grid -->
+                <div class="panel menu-panel">
+                    <div class="panel-header">
+                        <h2>Menú</h2>
+                        <div class="menu-categories" id="menu-categories">
+                            <button class="cat-chip active" data-category="all">Todos</button>
+                            <button class="cat-chip" data-category="tacos">Tacos</button>
+                            <button class="cat-chip" data-category="bebidas">Bebidas</button>
+                        </div>
+                    </div>
+                    <div class="menu-grid" id="menu-grid">
+                        <!-- Menu items will be generated here -->
+                    </div>
+                </div>
+
+                <!-- 3. Right: Ticket Panel -->
+                <div class="panel ticket-panel empty" id="ticket-panel">
+                    <div class="ticket-state-empty">
+                        <span class="material-symbols-rounded empty-icon">receipt_long</span>
+                        <p>Selecciona o crea un pedido para comenzar</p>
+                    </div>
+
+                    <div class="ticket-state-active hidden">
+                        <div class="ticket-header">
+                            <div class="ticket-info">
+                                <h3 id="ticket-customer">Cliente</h3>
+                                <span class="order-number" id="ticket-order-number">#000</span>
+                            </div>
+                            <span class="order-status badge-pendiente" id="ticket-status">Pendiente</span>
+                        </div>
+                        
+                        <div class="ticket-items" id="ticket-items">
+                            <!-- Selected items will appear here -->
+                        </div>
+
+                        <div class="ticket-notes">
+                            <button id="btn-add-note" class="btn-text">
+                                <span class="material-symbols-rounded">edit_note</span>
+                                Agregar nota
+                            </button>
+                            <div id="ticket-notes-display" class="notes-display hidden"></div>
+                        </div>
+
+                        <div class="ticket-footer">
+                            <div class="ticket-total-row">
+                                <span>Total</span>
+                                <span class="large-total" id="ticket-total">$0.00</span>
+                            </div>
+                            <div class="ticket-actions">
+                                <button id="btn-send-kitchen" class="btn-action primary">
+                                    <span class="material-symbols-rounded">send</span>
+                                    En Cocina
+                                </button>
+                                <button id="btn-charge" class="btn-action success">
+                                    <span class="material-symbols-rounded">payments</span>
+                                    Cobrar
+                                </button>
+                            </div>
+                            <button id="btn-cancel-order" class="btn-text danger mt-2">Cancelar Pedido</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ====== KITCHEN VIEW (Cocina) ====== -->
+            <section id="view-kitchen" class="view-section hidden">
+                <div class="kitchen-header">
+                    <h2>Cola de Preparación</h2>
+                    <div class="kitchen-modes">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-sound" checked>
+                            <span class="slider round"></span>
+                            <span class="label-text">Sonido Nuevo Pedido</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="kitchen-grid" id="kitchen-orders-list">
+                    <!-- Kitchen order cards will go here -->
+                </div>
+            </section>
+
+            <!-- ====== STATS VIEW (Estadísticas) ====== -->
+            <section id="view-stats" class="view-section hidden">
+                <div class="stats-header">
+                    <h2>Resumen del Día</h2>
+                    <button id="btn-end-day" class="btn-text danger">Cerrar Caja (Reiniciar Día)</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon income"><span class="material-symbols-rounded">attach_money</span></div>
+                        <div class="stat-info">
+                            <p>Total en Caja</p>
+                            <h3 id="stat-total">$0.00</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orders"><span class="material-symbols-rounded">receipt</span></div>
+                        <div class="stat-info">
+                            <p>Pedidos Pagados</p>
+                            <h3 id="stat-paid-count">0</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon canceled"><span class="material-symbols-rounded">cancel</span></div>
+                        <div class="stat-info">
+                            <p>Cancelaciones</p>
+                            <h3 id="stat-canceled-count">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-charts">
+                    <div class="chart-container">
+                        <h3>Productos Más Vendidos</h3>
+                        <ul id="top-products-list" class="top-products-list">
+                            <!-- Items here -->
+                        </ul>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Historial de Órdenes</h3>
+                        <div class="history-list" id="history-list">
+                            <!-- Finished/Canceled orders -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ====== SETTINGS VIEW (Ajustes) ====== -->
+            <section id="view-settings" class="view-section hidden">
+                <h2>Configuración</h2>
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3>Apariencia</h3>
+                        <div class="setting-row">
+                            <span>Tema Oscuro</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-dark-mode">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <span>Mostrar imágenes de productos</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-show-images" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3>Operación</h3>
+                        <div class="setting-row">
+                            <div>
+                                <span>Envío Automático a Cocina</span>
+                                <p class="setting-desc">Si está activo, los pedidos y cambios se envían al instante.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-auto-kitchen">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ====== MENU ADMIN VIEW ====== -->
+            <section id="view-menu-admin" class="view-section hidden">
+                <div class="panel-header" style="margin-bottom: 1.5rem; background: transparent; border: none; padding: 0;">
+                    <h2>Administrar Menú</h2>
+                    <button id="btn-add-product" class="btn-primary">
+                        <span class="material-symbols-rounded">add</span>
+                        Agregar Producto
+                    </button>
+                </div>
+                <div class="admin-products-list" id="admin-products-list">
+                    <!-- admin products here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav">
+            <button class="mob-tab-btn active" data-mob-tab="pedidos">
+                <span class="material-symbols-rounded">receipt_long</span>
+                Pedidos
+            </button>
+            <button class="mob-tab-btn" data-mob-tab="menu">
+                <span class="material-symbols-rounded">restaurant_menu</span>
+                Menú
+            </button>
+            <button class="mob-tab-btn" data-mob-tab="ticket">
+                <span class="material-symbols-rounded">receipt</span>
+                Ticket
+                <span id="mob-ticket-badge" class="notification-badge hidden">0</span>
+            </button>
+            <button class="mob-tab-btn" data-mob-tab="mas">
+                <span class="material-symbols-rounded">more_horiz</span>
+                Más
+            </button>
+        </nav>
+
+        <!-- Mas Menu Mobile Overlay -->
+        <div id="mob-mas-menu" class="mob-mas-menu hidden">
+            <div class="mob-mas-header">
+                <h2>Más Opciones</h2>
+                <button class="btn-close-mas"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="mob-mas-content">
+                <button class="mob-mas-btn" data-view="menu-admin">
+                    <span class="material-symbols-rounded">edit_square</span> Administrar Menú
+                </button>
+                <button class="mob-mas-btn" data-view="kitchen">
+                    <span class="material-symbols-rounded">soup_kitchen</span> Pantalla de Cocina
+                </button>
+                <button class="mob-mas-btn" data-view="stats">
+                    <span class="material-symbols-rounded">bar_chart</span> Estadísticas
+                </button>
+                <button class="mob-mas-btn" data-view="settings">
+                    <span class="material-symbols-rounded">settings</span> Configuración
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- New Order Modal -->
+    <div id="modal-new-order" class="modal hidden">
+        <div class="modal-content">
+            <h2>Nuevo Pedido</h2>
+            <div class="form-group">
+                <label for="input-customer-name">Nombre del cliente</label>
+                <input type="text" id="input-customer-name" placeholder="Ej. Juan Pérez" autocomplete="off" autofocus>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-text" id="btn-cancel-new-order">Cancelar</button>
+                <button class="btn-primary" id="btn-confirm-new-order">Comenzar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Note Modal -->
+    <div id="modal-add-note" class="modal hidden">
+        <div class="modal-content">
+            <h2>Agregar Nota</h2>
+            <div class="form-group">
+                <label for="input-note">Ingresa indicaciones para la cocina</label>
+                <textarea id="input-note" rows="3" placeholder="Ej. Sin cebolla, extra picante al lado..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-text" id="btn-cancel-note">Cancelar</button>
+                <button class="btn-primary" id="btn-save-note">Guardar Nota</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="modal-payment" class="modal hidden">
+        <div class="modal-content large">
+            <h2>Cobrar Pedido <span class="highlight" id="payment-order-number"></span></h2>
+            <div class="payment-total">
+                <span>Total a pagar:</span>
+                <span class="huge-total" id="payment-total-amount">$0.00</span>
+            </div>
+            
+            <div class="payment-methods">
+                <button class="method-card active" data-method="cash">
+                    <span class="material-symbols-rounded">payments</span>
+                    Efectivo
+                </button>
+                <button class="method-card" data-method="transfer">
+                    <span class="material-symbols-rounded">account_balance</span>
+                    Transferencia
+                </button>
+            </div>
+
+            <!-- Cash Panel -->
+            <div id="payment-cash-panel" class="payment-panel">
+                <div class="form-group">
+                    <label>Efectivo Recibido</label>
+                    <div class="input-money-wrapper">
+                        <span class="currency-symbol">$</span>
+                        <input type="number" id="input-cash-received" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <div class="change-display">
+                    <span>Cambio a devolver:</span>
+                    <span class="change-amount" id="payment-change">$0.00</span>
+                </div>
+                <!-- Quick cash buttons -->
+                <div class="quick-cash" id="quick-cash-buttons">
+                    <!-- dynamically filled -->
+                </div>
+            </div>
+
+            <!-- Transfer Panel -->
+            <div id="payment-transfer-panel" class="payment-panel hidden">
+                <div class="transfer-instructions">
+                    <span class="material-symbols-rounded huge-icon">check_circle</span>
+                    <p>Verifica que la transferencia haya llegado a la cuenta antes de confirmar.</p>
+                </div>
+            </div>
+
+            <div class="modal-actions mt-4">
+                <button class="btn-text" id="btn-cancel-payment">Cancelar</button>
+                <button class="btn-action success" id="btn-confirm-payment">Confirmar Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Admin Modal -->
+    <div id="modal-product" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-product-title">Agregar Producto</h2>
+            <input type="hidden" id="input-product-id">
+            
+            <div class="form-group">
+                <label for="input-product-name">Nombre del producto</label>
+                <input type="text" id="input-product-name" placeholder="Ej. Taco Dorado" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label for="input-product-price">Precio</label>
+                <div class="input-money-wrapper">
+                    <span class="currency-symbol">$</span>
+                    <input type="number" id="input-product-price" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="input-product-category">Categoría</label>
+                <select id="input-product-category" style="width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border); border-radius: var(--radius-md); background: var(--bg-main); color: var(--text-main); font-size: 1.1rem; outline: none;">
+                    <option value="tacos">Tacos</option>
+                    <option value="bebidas">Bebidas</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="input-product-image">URL de Imagen (Opcional)</label>
+                <input type="text" id="input-product-image" placeholder="https://..." autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="margin-bottom: 0;">Disponible</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="input-product-available" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-text" id="btn-cancel-product">Cancelar</button>
+                <button class="btn-primary" id="btn-save-product">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="./app.js"></script>
+</body>
+</html>
